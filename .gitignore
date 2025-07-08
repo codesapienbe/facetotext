@@ -34,3 +34,4 @@ build/
 ### Mac OS ###
 .DS_Store
 /src/main/frontend/generated/
+/node_modules/
