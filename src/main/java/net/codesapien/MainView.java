@@ -3,13 +3,13 @@ package net.codesapien;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
@@ -43,56 +43,86 @@ public class MainView extends VerticalLayout {
     public MainView(@Autowired OllamaChatModel chatModel) {
         this.chatModel = chatModel;
 
+        // Main container styling with glassmorphic effects
         setSizeFull();
-        setAlignItems(Alignment.CENTER);
-        setJustifyContentMode(JustifyContentMode.CENTER);
+        getStyle()
+            .set("background", "rgba(255, 255, 255, 0.25)")
+            .set("backdrop-filter", "blur(15px)")
+            .set("border-radius", "16px")
+            .set("border", "1px solid rgba(255,255,255,0.3)")
+            .set("padding", "1rem");
 
         // Webcam video element (live preview)
         videoElement = new Element("video");
         videoElement.setAttribute("autoplay", true);
         videoElement.setAttribute("playsinline", true);
-        videoElement.getStyle().set("width", "640px");
-        videoElement.getStyle().set("height", "480px");
+        videoElement.getStyle().set("width", "100%");
+        videoElement.getStyle().set("height", "auto");
         videoElement.getStyle().set("border", "1px solid #ccc");
 
-        // Add video to a Vaadin container for JS interop
+        // Add video to webcam container
         VerticalLayout webcamLayout = new VerticalLayout();
         webcamLayout.setPadding(false);
         webcamLayout.setSpacing(false);
         webcamLayout.setSizeFull();
         webcamLayout.getElement().appendChild(videoElement);
-
-        // Start webcam when attached
         webcamLayout.getElement().executeJs(
                 "const video = this.querySelector('video');" +
-                        "navigator.mediaDevices.getUserMedia({video:true}).then(stream => {" +
-                        "  video.srcObject = stream;" +
-                        "});"
+                "navigator.mediaDevices.getUserMedia({video:true}).then(stream => {" +
+                "  video.srcObject = stream;" +
+                "});"
         );
 
-        // Image preview
+        // Image preview with responsive settings and glass effect
         previewImage = new Image();
         previewImage.setAlt("Webcam preview");
-        previewImage.setWidth("640px");
-        previewImage.setHeight("480px");
+        previewImage.setWidth("100%");
+        previewImage.getStyle().set("height", "auto");
         previewImage.getStyle().set("border", "1px solid #ccc");
+        previewImage.getStyle().set("background", "rgba(255, 255, 255, 0.15)");
+        previewImage.getStyle().set("backdrop-filter", "blur(10px)");
 
-        // Layout split: left (webcam), right (captured image)
-        SplitLayout splitLayout = new SplitLayout();
-        splitLayout.setWidthFull();
-        splitLayout.setHeight(500, Unit.PIXELS);
-        splitLayout.addToPrimary(webcamLayout);
-        splitLayout.addToSecondary(previewImage);
-        splitLayout.setSplitterPosition(50);
+        // Create overlay containers for webcam and preview
+        Div webcamContainer = new Div();
+        webcamContainer.getStyle().set("position", "relative").set("width", "100%").set("height", "100%");
+        webcamContainer.add(webcamLayout);
 
-        // Step 1: Button to capture photo
-        captureButton = new Button("Capture Photo", onCaptureEvent(webcamLayout));
+        Div previewContainer = new Div();
+        previewContainer.getStyle().set("position", "relative").set("width", "100%").set("height", "100%");
+        previewContainer.add(previewImage);
 
-        // Step 2: Button to describe, enabled only after photo is captured
+        // Create flex container with two equal areas
+        HorizontalLayout flexLayout = new HorizontalLayout();
+        flexLayout.setWidthFull();
+        flexLayout.setHeightFull();
+        flexLayout.setSpacing(false);
+        flexLayout.getStyle().set("display", "flex").set("justify-content", "space-between");
+        flexLayout.addAndExpand(webcamContainer, previewContainer);
+
+        // Capture button overlays the webcam container, sticking to the bottom center
+        captureButton = new Button("Capture Photo", onCaptureEvent(webcamContainer));
+        captureButton.getStyle()
+            .set("position", "absolute")
+            .set("bottom", "10px")
+            .set("left", "50%")
+            .set("transform", "translateX(-50%)");
+
+        // Describe button overlays the preview container, sticking to the bottom center
         describeButton = new Button("Start Describing", onDescribeEvent(chatModel));
+        describeButton.getStyle()
+            .set("position", "absolute")
+            .set("bottom", "10px")
+            .set("left", "50%")
+            .set("transform", "translateX(-50%)");
+        // Initially disabled until a photo is captured
         describeButton.setEnabled(false);
 
-        add(splitLayout, captureButton, describeButton);
+        // Add buttons to their containers
+        webcamContainer.getElement().appendChild(captureButton.getElement());
+        previewContainer.getElement().appendChild(describeButton.getElement());
+
+        // Add the flex layout to the main view
+        add(flexLayout);
     }
 
     private @NotNull ComponentEventListener<ClickEvent<Button>> onDescribeEvent(OllamaChatModel chatModel) {
@@ -132,22 +162,45 @@ public class MainView extends VerticalLayout {
         };
     }
 
-    private @NotNull ComponentEventListener<ClickEvent<Button>> onCaptureEvent(VerticalLayout webcamLayout) {
+    private @NotNull ComponentEventListener<ClickEvent<Button>> onCaptureEvent(Div webcamContainer) {
         return event -> {
             captureButton.setEnabled(false);
             describeButton.setEnabled(false);
-            // Capture photo from webcam using JS interop
-            webcamLayout.getElement().executeJs(
-                    "const video = this.querySelector('video');" +
-                            "const canvas = document.createElement('canvas');" +
-                            "canvas.width = video.videoWidth || 640;" +
-                            "canvas.height = video.videoHeight || 480;" +
-                            "canvas.getContext('2d').drawImage(video, 0, 0);" +
-                            "const dataUrl = canvas.toDataURL('image/png');" +
-                            "$0.$server.receivePhoto(dataUrl);",
-                    this // $0 refers to this Java component (MainView)
-            );
-            Notification.show("Capturing photo...", 2000, Notification.Position.TOP_CENTER)
+            // Inject JS to perform a countdown overlay then capture the photo
+            webcamContainer.getElement().executeJs(
+                "var container = this;" +
+                "container.style.position = 'relative';" +
+                "var overlay = document.createElement('div');" +
+                "overlay.style.position = 'absolute';" +
+                "overlay.style.width = '100%';" +
+                "overlay.style.height = '100%';" +
+                "overlay.style.top = '0';" +
+                "overlay.style.left = '0';" +
+                "overlay.style.display = 'flex';" +
+                "overlay.style.justifyContent = 'center';" +
+                "overlay.style.alignItems = 'center';" +
+                "overlay.style.fontSize = '5rem';" +
+                "overlay.style.color = 'white';" +
+                "overlay.style.textShadow = '0 0 10px black';" +
+                "container.appendChild(overlay);" +
+                "var count = 3;" +
+                "var countdown = setInterval(function() {" +
+                "   if(count > 0) {" +
+                "       overlay.innerText = count;" +
+                "   } else {" +
+                "       clearInterval(countdown);" +
+                "       overlay.remove();" +
+                "       var video = container.querySelector('video');" +
+                "       var canvas = document.createElement('canvas');" +
+                "       canvas.width = video.videoWidth || 640;" +
+                "       canvas.height = video.videoHeight || 480;" +
+                "       canvas.getContext('2d').drawImage(video, 0, 0);" +
+                "       var dataUrl = canvas.toDataURL('image/png');" +
+                "       $0.$server.receivePhoto(dataUrl);" +
+                "   }" +
+                "   count--;" +
+                "}, 1000);", this);
+            Notification.show("Get ready...", 2000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         };
     }
@@ -155,7 +208,6 @@ public class MainView extends VerticalLayout {
     @ClientCallable
     public void receivePhoto(String dataUrl) {
         try {
-            // Accept both "image/png;base64," and "image/png;base64," as prefix
             String prefix = "image/png;base64,";
             if (dataUrl != null && dataUrl.contains("base64,")) {
                 int idx = dataUrl.indexOf("base64,") + "base64,".length();
@@ -165,7 +217,6 @@ public class MainView extends VerticalLayout {
                 previewImage.setSrc(resource);
                 Notification.show("Photo captured. You can now start describing.", 2000, Notification.Position.TOP_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                // Enable the describe button
                 describeButton.setEnabled(true);
             }
         } catch (Exception ex) {

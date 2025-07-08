@@ -1,14 +1,40 @@
-# Project Base for Vaadin Flow and Spring Boot
+# FaceToText
 
-This project can be used as a starting point to create your own Vaadin Flow application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+> Vaadin Flow & Spring Boot Vision App
 
-Import the project to the IDE of your choosing as a Maven project. 
+This application lets you capture a live photo using your webcam and get an AI-powered description of what’s in the picture.
 
-Run application using `mvn spring-boot:run` or directly running Application class from your IDE.
+## Features
 
-Open http://localhost:8080/ in browser
+- \*Live Webcam Preview\*: See your webcam feed directly in the browser.
+- \*Photo Capture\*: Click the \`Capture Photo\` button to take a snapshot.
+- \*Image Description\*: After capturing, click \`Start Describing\` to send your snapshot to an AI model that describes the image.
+- \*Real-Time Notifications\*: Get immediate feedback and results through on-screen notifications.
 
-For documentation on using Vaadin Flow and Spring, visit [vaadin.com/docs](https://vaadin.com/docs/v10/flow/spring/tutorial-spring-basic.html)
+## How It Works
 
-For more information on Vaadin Flow, visit https://vaadin.com/flow.
+1. **Live Stream**  
+   When you open the app, your browser will ask for permission to access the webcam. Once allowed, you will see a video preview of your feed.
+
+2. **Capture Photo**  
+   Click the \`Capture Photo\` button to capture a still image from the live feed. The captured photo will appear on the right side of the screen.
+
+3. **Generate Description**  
+   With a photo captured, click the \`Start Describing\` button. The app sends the image to an AI chat model to generate a description of the picture. The description is then displayed as a notification.
+
+## Running the Application
+
+- Import the project as a Maven project.
+- Run the application using:
+  \`\`\`
+  mvn spring-boot:run
+  \`\`\`
+- Open [http://localhost:8080/](http://localhost:8080/) in your browser.
+
+## Requirements
+
+- A working webcam.
+- Browser permissions to access the webcam.
+- Internet connection if additional AI service dependencies are used.
+
+Enjoy capturing memories and discovering what the AI sees in your photos!
