@@ -1,0 +1,27 @@
+[project]
+name = "facebytes"
+version = "0.1.0"
+description = "FaceBytes is a Python package for face detection and recognition using the DeepFace, Celery, and FastAPI."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.30.0",
+    "deepface>=0.0.75",
+    "celery>=5.3.1",
+    "redis>=4.6.0",
+    "pydantic>=2.7.2",
+    "python-multipart>=0.0.6",
+    "aiofiles>=23.1.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "pillow>=10.0.0",
+    "numpy>=1.26.4",
+    "opencv-python-headless",
+    "tf-keras>=2.14.0",
+    "sqlalchemy>=2.0.20",
+    "psycopg2-binary>=2.9.6",
+]
+
+[project.scripts]
+facebytes = "src/main/python/facebytes.py"
