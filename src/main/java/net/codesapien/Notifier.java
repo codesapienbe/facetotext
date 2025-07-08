@@ -9,8 +9,6 @@ public class Notifier {
         // Private constructor to prevent instantiation
     }
 
-    public static final String NOTIFICATION_CLASS = "glass-notification";
-
     /**
      * Displays an error notification with the given message.
      *
@@ -19,7 +17,6 @@ public class Notifier {
     public static void showError(String message) {
         Notification notification = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        notification.addClassName(NOTIFICATION_CLASS);
     }
 
     /**

@@ -1,14 +1,14 @@
 package net.codesapien;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
-
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.router.Route;
-import org.jetbrains.annotations.NotNull;
+import com.vaadin.flow.server.StreamResource;
+
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -18,25 +18,24 @@ import org.springframework.ai.ollama.api.OllamaModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.util.MimeTypeUtils;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 @Route
-public class MainView extends VerticalLayout {
+public class MainView extends HorizontalLayout {
+
+    private static final String TRANSLATIONS_BUNDLE = "translations.messages";
+
+    private final Image previewImage = new Image();
 
     public MainView(@Autowired OllamaChatModel chatModel) {
-
         setSizeFull();
-        setAlignItems(Alignment.CENTER);
-        setJustifyContentMode(JustifyContentMode.CENTER);
 
-        VerticalLayout glassLayout = new VerticalLayout();
-        glassLayout.addClassName("glass");
-        glassLayout.setWidth("400px");
-
+        // Create form fields
         PromptField promptField = new PromptField(
                 getTranslation("prompt.label"),
                 getTranslation("prompt.placeholder")
@@ -62,27 +61,35 @@ public class MainView extends VerticalLayout {
             sendButton.setEnabled(!event.getValue().trim().isEmpty());
         });
 
+        // Initialize preview image using default properties
+        previewImage.setAlt(getTranslation("preview.image.alt"));
+
         sendButton.addClickListener(event -> {
             sendButton.setEnabled(false); // Prevent double clicks
             responseField.clear();
 
             try {
-                // Load the image resource (adjust path if needed)
                 ClassPathResource imageResource = new ClassPathResource(uploadPath.getValue());
+                StreamResource resource = new StreamResource("preview.png", () -> {
+                    try {
+                        return imageResource.getInputStream();
+                    } catch (Exception ex) {
+                        Notification.show(getTranslation("image.load.error") + ": " + ex.getMessage(), 5000, Notification.Position.TOP_CENTER)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return null;
+                    }
+                });
+                previewImage.setSrc(resource);
 
-                // Build the user message
                 UserMessage userMessage = UserMessage.builder()
                         .text(promptField.getValue())
                         .media(List.of(new Media(MimeTypeUtils.IMAGE_PNG, imageResource)))
                         .build();
 
-
-                // Call the model (Llava)
                 ChatResponse response = chatModel.call(
                         new Prompt(userMessage, OllamaOptions.builder().model(OllamaModel.LLAVA).build())
                 );
 
-                // Set the response in the UI
                 String resultText = response.getResult().getOutput().getText();
                 responseField.setValue(resultText);
 
@@ -97,9 +104,33 @@ public class MainView extends VerticalLayout {
             }
         });
 
+        // Create left column (form column)
+        VerticalLayout formLayout = new VerticalLayout();
+        formLayout.add(promptField, uploadPath, responseField, sendButton);
+        formLayout.setFlexGrow(1, promptField, uploadPath, sendButton);
+        formLayout.setFlexGrow(4, responseField);
 
+        // Create right column (image preview column)
+        VerticalLayout imageLayout = new VerticalLayout(previewImage);
 
-        glassLayout.add(promptField, uploadPath, responseField, sendButton);
-        add(glassLayout);
+        // Add columns to the layout using default styling
+        add(formLayout, imageLayout);
+        setFlexGrow(1, formLayout);
+        setFlexGrow(1, imageLayout);
+    }
+
+    private String getTranslation(String key) {
+        ResourceBundle bundle;
+        try {
+            Locale locale = getLocale();
+            bundle = ResourceBundle.getBundle(TRANSLATIONS_BUNDLE, locale);
+            if (!bundle.containsKey(key)) {
+                bundle = ResourceBundle.getBundle(TRANSLATIONS_BUNDLE, Locale.ENGLISH);
+            }
+        } catch (Exception e) {
+            Notification.show("Error loading translations: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER);
+            bundle = ResourceBundle.getBundle(TRANSLATIONS_BUNDLE, Locale.ENGLISH);
+        }
+        return bundle.getString(key);
     }
 }

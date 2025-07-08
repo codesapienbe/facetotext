@@ -7,6 +7,5 @@ public class PromptField extends TextField {
         setLabel(label);
         setPlaceholder(placeholder);
         setWidthFull();
-        addClassName("glass");
     }
 }
