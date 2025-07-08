@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.codesapien</groupId>
+    <artifactId>liber8apps</artifactId>
+    <name>liber8apps</name>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <description>Project base for Vaadin Flow and Spring Boot</description>
+
+    <properties>
+        <!-- Defaults come from parent, but shown here how to override -->
+        <vaadin.version>24.6.0</vaadin.version>
+        <spring-boot.version>3.4.0</spring-boot.version>
+        <java.version>24</java.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
+    </properties>
+
+    <parent>
+        <groupId>in.virit.sb</groupId>
+        <artifactId>viritin-project-parent</artifactId>
+        <version>0.0.11</version>
+        <relativePath/>
+    </parent>
+
+    <dependencies>
+        
+        <!-- Essential Vaadin & Spring Dependencies coming from parent -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>spring-ai</id>
+            <name>Spring AI Repository</name>
+            <url>https://repo.spring.io/spring-ai</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>vaadin-addons</id>
+            <name>Vaadin Addons</name>
+            <url>https://maven.vaadin.com/vaadin-addons</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>vaadin-prereleases</id>
+            <name>Vaadin Pre-Releases</name>
+            <url>https://maven.vaadin.com/vaadin-prereleases</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+        <!-- Essential Vaadin & Spring plugins coming from parent -->
+        </plugins>
+    </build>
+
+</project>

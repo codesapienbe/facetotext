@@ -1,0 +1,11 @@
+server:
+    port: 8888
+
+
+spring:
+    ai:
+        ollama:
+            init:
+                pull-model-strategy: always
+                chat:
+                    include: false
