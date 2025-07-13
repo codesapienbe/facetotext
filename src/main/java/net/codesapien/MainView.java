@@ -84,19 +84,36 @@ public class MainView extends VerticalLayout {
 
         // Create overlay containers for webcam and preview
         Div webcamContainer = new Div();
-        webcamContainer.getStyle().set("position", "relative").set("width", "100%").set("height", "100%");
+        webcamContainer.getStyle()
+            .set("position", "relative")
+            .set("width", "95vw")
+            .set("height", "95vh")
+            .set("flex", "1 1 50%")
+            .set("min-width", "300px");
+        webcamContainer.addClassName("responsive-container");
         webcamContainer.add(webcamLayout);
 
         Div previewContainer = new Div();
-        previewContainer.getStyle().set("position", "relative").set("width", "100%").set("height", "100%");
+        previewContainer.getStyle()
+            .set("position", "relative")
+            .set("width", "95vw")
+            .set("height", "95vh")
+            .set("flex", "1 1 50%")
+            .set("min-width", "300px");
+        previewContainer.addClassName("responsive-container");
         previewContainer.add(previewImage);
 
-        // Create flex container with two equal areas
+        // Create flex container with two equal areas & enable wrapping for responsiveness.
+        // Added a custom class for media queries.
         HorizontalLayout flexLayout = new HorizontalLayout();
+        flexLayout.addClassName("responsive-layout");
         flexLayout.setWidthFull();
         flexLayout.setHeightFull();
         flexLayout.setSpacing(false);
-        flexLayout.getStyle().set("display", "flex").set("justify-content", "space-between");
+        flexLayout.getStyle()
+            .set("display", "flex")
+            .set("justify-content", "space-between")
+            .set("flex-wrap", "wrap");
         flexLayout.addAndExpand(webcamContainer, previewContainer);
 
         // Capture button overlays the webcam container, sticking to the bottom center
@@ -106,6 +123,7 @@ public class MainView extends VerticalLayout {
             .set("bottom", "10px")
             .set("left", "50%")
             .set("transform", "translateX(-50%)");
+        captureButton.addClassName("responsive-button");
 
         // Describe button overlays the preview container, sticking to the bottom center
         describeButton = new Button("Start Describing", onDescribeEvent(chatModel));
@@ -114,12 +132,25 @@ public class MainView extends VerticalLayout {
             .set("bottom", "10px")
             .set("left", "50%")
             .set("transform", "translateX(-50%)");
-        // Initially disabled until a photo is captured
         describeButton.setEnabled(false);
+        describeButton.addClassName("responsive-button");
 
         // Add buttons to their containers
         webcamContainer.getElement().appendChild(captureButton.getElement());
         previewContainer.getElement().appendChild(describeButton.getElement());
+
+        // Inject custom CSS via JS for mobile devices, using only the current class.
+        getUI().ifPresent(ui ->
+            ui.getPage().executeJs(
+                "var style = document.createElement('style');" +
+                "style.innerHTML = '@media (max-width: 600px) {" +
+                "  .responsive-layout { flex-direction: column !important; justify-content: flex-start !important; align-items: stretch !important; }" +
+                "  .responsive-container { flex: 1 1 100% !important; height: 100% !important; }" +
+                "  .responsive-button { position: static !important; transform: none !important; margin-top: 1rem !important; }" +
+                "}' + " +
+                "document.head.appendChild(style);"
+            )
+        );
 
         // Add the flex layout to the main view
         add(flexLayout);
